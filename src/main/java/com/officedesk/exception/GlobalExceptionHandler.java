@@ -32,6 +32,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TicketAlreadyRatedException.class)
     public ResponseEntity<ErrorResponse> handleAlreadyRated(TicketAlreadyRatedException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(buildResponse(409, "CONFLICT", ex.getMessage(), request));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildResponse(400, "BAD_REQUEST", ex.getMessage(), request));
     }
 

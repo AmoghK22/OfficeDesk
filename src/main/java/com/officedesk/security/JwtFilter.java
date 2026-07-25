@@ -36,11 +36,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validateToken(token)) {
                 String email = jwtUtil.extractEmail(token);
+                Long userId = jwtUtil.extractUserId(token);
+                String role = jwtUtil.extractRole(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
+                JwtAuthDetails jwtDetails = new JwtAuthDetails(userId, email, role);
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authToken.setDetails(jwtDetails);
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

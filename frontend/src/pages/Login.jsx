@@ -65,6 +65,11 @@ export default function Login() {
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
               />
+              <div className="text-right mt-1">
+                <Link to="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-800">
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
             <button
               type="submit" disabled={loading}

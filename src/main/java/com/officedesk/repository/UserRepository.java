@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDepartmentIdAndRoleAndIsActive(Long deptId, Role role, boolean active);
 
     List<User> findByRole(Role role);
+
+    Optional<User> findByResetToken(String resetToken);
 }

@@ -3,10 +3,9 @@ package com.officedesk.controller;
 import com.officedesk.dto.ticket.*;
 import com.officedesk.entity.User;
 import com.officedesk.enums.Priority;
-import com.officedesk.enums.Role;
 import com.officedesk.enums.TicketStatus;
-import com.officedesk.exception.ResourceNotFoundException;
-import com.officedesk.repository.UserRepository;
+import com.officedesk.security.SecurityUtils;
+import com.officedesk.security.JwtAuthDetails;
 import com.officedesk.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -14,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,16 +24,14 @@ import java.util.Map;
 public class TicketController {
 
     private final TicketService ticketService;
-    private final UserRepository userRepo;
 
-    public TicketController(TicketService ticketService, UserRepository userRepo) {
+    public TicketController(TicketService ticketService) {
         this.ticketService = ticketService;
-        this.userRepo = userRepo;
     }
 
     @PostMapping
     public ResponseEntity<TicketResponse> create(@Valid @RequestBody TicketCreateRequest req) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.status(HttpStatus.CREATED).body(ticketService.createTicket(req, userId));
     }
 
@@ -46,60 +42,66 @@ public class TicketController {
             @RequestParam(required = false) TicketStatus status,
             @RequestParam(required = false) Priority priority,
             @RequestParam(required = false) String search) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.getMyTickets(userId, PageRequest.of(page, size), status, priority, search));
+    }
+
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<DashboardStats> dashboardStats() {
+        JwtAuthDetails details = (JwtAuthDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        return ResponseEntity.ok(ticketService.getDashboardStats(details.getUserId(), details.getRole()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> getById(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.getTicketById(id, userId));
     }
 
     @PutMapping("/{id}/status")
     public ResponseEntity<TicketResponse> updateStatus(@PathVariable Long id,
                                                        @Valid @RequestBody TicketStatusUpdateRequest req) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.updateStatus(id, req, userId));
     }
 
     @PutMapping("/{id}/assign")
     public ResponseEntity<TicketResponse> assign(@PathVariable Long id,
                                                  @Valid @RequestBody TicketAssignRequest req) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.assignTicket(id, req, userId));
     }
 
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommentResponse> addComment(@PathVariable Long id,
                                                       @Valid @RequestBody CommentRequest req) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.status(HttpStatus.CREATED).body(ticketService.addComment(id, req, userId));
     }
 
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<CommentResponse>> getComments(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.getComments(id, userId));
     }
 
     @GetMapping("/{id}/activities")
     public ResponseEntity<List<ActivityResponse>> getActivities(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.getActivities(id, userId));
     }
 
     @PostMapping("/{id}/reopen")
     public ResponseEntity<TicketResponse> reopen(@PathVariable Long id,
                                                  @Valid @RequestBody ReopenRequest req) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(ticketService.reopenTicket(id, req, userId));
     }
 
     @PostMapping("/{id}/rate")
     public ResponseEntity<Void> rate(@PathVariable Long id,
                                      @Valid @RequestBody RatingRequest req) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         ticketService.rateTicket(id, req, userId);
         return ResponseEntity.ok().build();
     }
@@ -149,13 +151,5 @@ public class TicketController {
                 "email", a.getEmail()
         )).toList();
         return ResponseEntity.ok(result);
-    }
-
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        User user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return user.getId();
     }
 }

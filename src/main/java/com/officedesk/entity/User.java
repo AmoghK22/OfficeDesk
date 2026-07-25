@@ -40,6 +40,10 @@ public class User {
     @Column(columnDefinition = "boolean default true")
     private boolean isActive = true;
 
+    private String resetToken;
+
+    private LocalDateTime resetTokenExpiry;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

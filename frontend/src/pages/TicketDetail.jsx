@@ -6,12 +6,12 @@ import { useToast } from '../context/ToastContext'
 import SlaCountdown from '../components/SlaCountdown'
 
 const ACTIVITY_ICONS = {
-  CREATED: 'bg-blue-500',
-  STATUS_CHANGED: 'bg-indigo-500',
-  ASSIGNED: 'bg-purple-500',
-  COMMENT_ADDED: 'bg-gray-500',
-  REOPENED: 'bg-orange-500',
-  RATED: 'bg-yellow-500',
+  CREATED: { bg: 'bg-blue-500', label: 'Created', icon: '★' },
+  STATUS_CHANGED: { bg: 'bg-indigo-500', label: 'Status Changed', icon: '→' },
+  ASSIGNED: { bg: 'bg-purple-500', label: 'Assigned', icon: '↔' },
+  COMMENT_ADDED: { bg: 'bg-gray-500', label: 'Comment', icon: '💬' },
+  REOPENED: { bg: 'bg-orange-500', label: 'Reopened', icon: '↺' },
+  RATED: { bg: 'bg-yellow-500', label: 'Rated', icon: '★' },
 }
 
 export default function TicketDetail() {
@@ -265,22 +265,31 @@ export default function TicketDetail() {
       {/* Activity Timeline */}
       {activities.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Activity Timeline</h2>
-          <div className="space-y-3">
-            {activities.map(a => (
-              <div key={a.id} className="flex items-start gap-3">
-                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${ACTIVITY_ICONS[a.action] || 'bg-gray-400'}`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">{a.performedByName}</span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(a.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                    </span>
+          <h2 className="text-lg font-semibold text-gray-900 mb-5">Activity Timeline</h2>
+          <div className="relative">
+            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-200" />
+            <div className="space-y-1">
+              {[...activities].reverse().map((a, i) => {
+                const act = ACTIVITY_ICONS[a.action] || { bg: 'bg-gray-400', label: a.action, icon: '•' }
+                return (
+                  <div key={a.id} className="relative flex items-start gap-4 pl-0 py-2">
+                    <div className={`relative z-10 w-6 h-6 rounded-full ${act.bg} flex items-center justify-center flex-shrink-0 ring-2 ring-white`}>
+                      <span className="text-white text-[10px] font-bold">{act.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0 -mt-0.5">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{act.label}</span>
+                        <span className="text-xs text-gray-400">by {a.performedByName}</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">
+                          {new Date(a.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700">{a.description}</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600">{a.description}</p>
-                </div>
-              </div>
-            ))}
+                )
+              })}
+            </div>
           </div>
         </div>
       )}

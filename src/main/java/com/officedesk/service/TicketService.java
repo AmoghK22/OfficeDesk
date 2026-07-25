@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TicketService {
@@ -28,8 +27,6 @@ public class TicketService {
     private final TicketCommentRepository commentRepo;
     private final TicketRatingRepository ratingRepo;
     private final TicketActivityRepository activityRepo;
-
-    private static final AtomicLong ticketCounter = new AtomicLong(0);
 
     public TicketService(TicketRepository ticketRepo, UserRepository userRepo,
                          DepartmentRepository deptRepo, SlaConfigRepository slaConfigRepo,
@@ -310,6 +307,57 @@ public class TicketService {
         return userRepo.findByDepartmentIdAndRoleAndIsActive(deptId, Role.AGENT, true);
     }
 
+    public DashboardStats getDashboardStats(Long userId, String role) {
+        long total, open, inProgress, resolved, closed, breached;
+        double avgRating;
+
+        if ("EMPLOYEE".equals(role)) {
+            total = ticketRepo.countByRaisedById(userId);
+            open = ticketRepo.countOpenByRaisedById(userId);
+            inProgress = ticketRepo.countInProgressByRaisedById(userId);
+            resolved = ticketRepo.countResolvedByRaisedById(userId);
+            closed = ticketRepo.countClosedByRaisedById(userId);
+            breached = ticketRepo.countBreachedByRaisedById(userId);
+            avgRating = 0;
+        } else if ("AGENT".equals(role)) {
+            total = ticketRepo.countByAssignedToId(userId);
+            open = ticketRepo.countOpenByAssignedToId(userId);
+            inProgress = ticketRepo.countInProgressByAssignedToId(userId);
+            resolved = ticketRepo.countResolvedByAssignedToId(userId);
+            closed = ticketRepo.countClosedByAssignedToId(userId);
+            breached = ticketRepo.countBreachedByAssignedToId(userId);
+            avgRating = ticketRepo.avgRatingByAgentId(userId);
+        } else if ("DEPT_HEAD".equals(role)) {
+            User user = userRepo.findById(userId).orElse(null);
+            Long deptId = user != null && user.getDepartment() != null ? user.getDepartment().getId() : null;
+            if (deptId != null) {
+                total = ticketRepo.countByDepartmentId(deptId);
+                open = ticketRepo.countOpenByDepartmentId(deptId);
+                inProgress = ticketRepo.countInProgressByDepartmentId(deptId);
+                resolved = ticketRepo.countResolvedByDepartmentId(deptId);
+                closed = ticketRepo.countClosedByDepartmentId(deptId);
+                breached = ticketRepo.countByDepartmentIdAndSlaBreachedTrue(deptId);
+                avgRating = ticketRepo.avgRatingByDeptId(deptId);
+            } else {
+                total = 0; open = 0; inProgress = 0; resolved = 0; closed = 0; breached = 0; avgRating = 0;
+            }
+        } else {
+            total = ticketRepo.countAll();
+            open = ticketRepo.countOpenAll();
+            inProgress = ticketRepo.countInProgressAll();
+            resolved = ticketRepo.countResolvedAll();
+            closed = ticketRepo.countClosedAll();
+            breached = ticketRepo.countBreachedAll();
+            avgRating = ticketRepo.avgRatingAll();
+        }
+
+        return DashboardStats.builder()
+                .total(total).open(open).inProgress(inProgress)
+                .resolved(resolved).closed(closed).breached(breached)
+                .avgRating(Math.round(avgRating * 10.0) / 10.0)
+                .build();
+    }
+
     public Page<TicketResponse> getRatedTickets(Pageable pageable) {
         return ticketRepo.findRatedTickets(pageable).map(this::mapToResponse);
     }
@@ -332,6 +380,7 @@ public class TicketService {
         if (user.getRole() == Role.DEPT_HEAD &&
             ticket.getDepartment().getId().equals(user.getDepartment() != null ? user.getDepartment().getId() : null)) return true;
         if (ticket.getAssignedTo() != null && ticket.getAssignedTo().getId().equals(user.getId())) return true;
+        if (ticket.getRaisedBy().getId().equals(user.getId())) return true;
         return false;
     }
 
@@ -354,8 +403,15 @@ public class TicketService {
     }
 
     private synchronized String generateTicketNo() {
-        long count = ticketRepo.count();
-        return String.format("TKT-%d-%04d", Year.now().getValue(), count + 1);
+        long count = ticketRepo.count() + 1;
+        String ticketNo = String.format("TKT-%d-%04d", Year.now().getValue(), count);
+        int safety = 0;
+        while (ticketRepo.existsByTicketNo(ticketNo) && safety < 100) {
+            count++;
+            ticketNo = String.format("TKT-%d-%04d", Year.now().getValue(), count);
+            safety++;
+        }
+        return ticketNo;
     }
 
     private void validateStatusTransition(TicketStatus current, TicketStatus next) {

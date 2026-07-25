@@ -1,17 +1,24 @@
 package com.officedesk.service;
 
 import com.officedesk.dto.auth.AuthResponse;
+import com.officedesk.dto.auth.ForgotPasswordRequest;
 import com.officedesk.dto.auth.LoginRequest;
 import com.officedesk.dto.auth.RegisterRequest;
+import com.officedesk.dto.auth.ResetPasswordRequest;
 import com.officedesk.entity.Department;
 import com.officedesk.entity.User;
 import com.officedesk.enums.Role;
 import com.officedesk.exception.DuplicateEmailException;
+import com.officedesk.exception.ResourceNotFoundException;
+import com.officedesk.exception.UnauthorizedException;
 import com.officedesk.repository.DepartmentRepository;
 import com.officedesk.repository.UserRepository;
 import com.officedesk.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -81,5 +88,31 @@ public class AuthService {
                 .name(user.getName())
                 .departmentId(user.getDepartment() != null ? user.getDepartment().getId() : null)
                 .build();
+    }
+
+    public String forgotPassword(ForgotPasswordRequest req) {
+        User user = userRepo.findByEmail(req.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this email"));
+
+        String resetToken = UUID.randomUUID().toString();
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
+        userRepo.save(user);
+
+        return resetToken;
+    }
+
+    public void resetPassword(ResetPasswordRequest req) {
+        User user = userRepo.findByResetToken(req.getToken())
+                .orElseThrow(() -> new UnauthorizedException("Invalid or expired reset token"));
+
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new UnauthorizedException("Reset token has expired. Please request a new one.");
+        }
+
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepo.save(user);
     }
 }

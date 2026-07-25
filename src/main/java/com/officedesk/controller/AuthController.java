@@ -37,4 +37,20 @@ public class AuthController {
     public ResponseEntity<List<DepartmentResponse>> getDepartments() {
         return ResponseEntity.ok(adminService.getAllDepartments());
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+        String resetToken = authService.forgotPassword(req);
+        return ResponseEntity.ok(java.util.Map.of(
+                "message", "Password reset token generated successfully",
+                "resetToken", resetToken,
+                "note", "In production, this token would be emailed to the user"
+        ));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(req);
+        return ResponseEntity.ok(java.util.Map.of("message", "Password has been reset successfully"));
+    }
 }
