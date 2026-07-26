@@ -127,6 +127,7 @@ public class AdminService {
                 .build();
     }
 
+    @Transactional
     public SlaConfigResponse createSlaConfig(Long deptId, SlaUpdateRequest req) {
         Department dept = deptRepo.findById(deptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found"));

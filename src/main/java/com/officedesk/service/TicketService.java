@@ -403,12 +403,13 @@ public class TicketService {
     }
 
     private synchronized String generateTicketNo() {
-        long count = ticketRepo.count() + 1;
-        String ticketNo = String.format("TKT-%d-%04d", Year.now().getValue(), count);
+        int year = Year.now().getValue();
+        long count = ticketRepo.countByYear(year) + 1;
+        String ticketNo = String.format("TKT-%d-%04d", year, count);
         int safety = 0;
         while (ticketRepo.existsByTicketNo(ticketNo) && safety < 100) {
             count++;
-            ticketNo = String.format("TKT-%d-%04d", Year.now().getValue(), count);
+            ticketNo = String.format("TKT-%d-%04d", year, count);
             safety++;
         }
         return ticketNo;

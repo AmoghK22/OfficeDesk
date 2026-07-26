@@ -20,10 +20,13 @@ services:
     ports:
       - "8084:8084"
     environment:
+      TZ: Asia/Kolkata
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JACKSON_TIME_ZONE: Asia/Kolkata
     depends_on:
       db:
         condition: service_healthy

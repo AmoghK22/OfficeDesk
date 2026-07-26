@@ -145,6 +145,7 @@ export default function AdminPanel() {
       {tab === 'users' && (
         <>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -197,6 +198,7 @@ export default function AdminPanel() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           {userTotalPages > 1 && (

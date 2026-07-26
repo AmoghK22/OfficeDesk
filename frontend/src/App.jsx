@@ -15,6 +15,13 @@ function ProtectedRoute({ children }) {
   return token ? children : <Navigate to="/login" />
 }
 
+function AdminRoute({ children }) {
+  const { token, user } = useAuth()
+  if (!token) return <Navigate to="/login" />
+  if (user?.role !== 'SUPER_ADMIN') return <Navigate to="/" />
+  return children
+}
+
 function App() {
   const { token } = useAuth()
 
@@ -30,7 +37,7 @@ function App() {
           <Route path="/tickets" element={<ProtectedRoute><TicketList /></ProtectedRoute>} />
           <Route path="/tickets/new" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
           <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>

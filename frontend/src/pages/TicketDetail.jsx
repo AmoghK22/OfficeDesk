@@ -46,7 +46,9 @@ export default function TicketDetail() {
       setComments(commentsRes.data)
       setActivities(activitiesRes.data)
       if ((user?.role === 'DEPT_HEAD' || user?.role === 'SUPER_ADMIN') && ticketRes.data.departmentId) {
-        api.get(`/tickets/dept/${ticketRes.data.departmentId}/agents`).then(res => setAgents(res.data || []))
+        api.get(`/tickets/dept/${ticketRes.data.departmentId}/agents`)
+          .then(res => setAgents(res.data || []))
+          .catch(() => {})
       }
     } catch (err) {
       toast.error('Failed to load ticket')

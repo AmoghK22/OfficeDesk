@@ -48,8 +48,9 @@ public class TicketController {
 
     @GetMapping("/dashboard/stats")
     public ResponseEntity<DashboardStats> dashboardStats() {
+        Long userId = SecurityUtils.getCurrentUserId();
         JwtAuthDetails details = (JwtAuthDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        return ResponseEntity.ok(ticketService.getDashboardStats(details.getUserId(), details.getRole()));
+        return ResponseEntity.ok(ticketService.getDashboardStats(userId, details.getRole()));
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,6 @@
 package com.officedesk.security;
 
-import com.officedesk.exception.ResourceNotFoundException;
+import com.officedesk.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -13,6 +13,6 @@ public final class SecurityUtils {
         if (auth != null && auth.getDetails() instanceof JwtAuthDetails details) {
             return details.getUserId();
         }
-        throw new ResourceNotFoundException("User not found");
+        throw new UnauthorizedException("Not authenticated");
     }
 }
