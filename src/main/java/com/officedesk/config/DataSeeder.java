@@ -38,6 +38,8 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (deptRepo.count() > 0) return;
+
         // Departments
         Department it = deptRepo.save(Department.builder().name(DepartmentName.IT).build());
         Department hr = deptRepo.save(Department.builder().name(DepartmentName.HR).build());
