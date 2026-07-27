@@ -172,6 +172,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.slaBreached = true")
     long countBreachedAll();
 
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE FUNCTION('YEAR', t.createdAt) = :year")
+    @Query(value = "SELECT COUNT(*) FROM tickets WHERE EXTRACT(YEAR FROM created_at) = :year", nativeQuery = true)
     long countByYear(@Param("year") int year);
 }
