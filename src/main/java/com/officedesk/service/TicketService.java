@@ -113,6 +113,11 @@ public class TicketService {
             throw new UnauthorizedException("You do not have permission to modify this ticket");
         }
 
+        // Employees may only CLOSE a resolved ticket via this endpoint
+        if (agent.getRole() == Role.EMPLOYEE && req.getStatus() != TicketStatus.CLOSED) {
+            throw new UnauthorizedException("Employees can only close a resolved ticket");
+        }
+
         validateStatusTransition(ticket.getStatus(), req.getStatus());
 
         TicketStatus oldStatus = ticket.getStatus();

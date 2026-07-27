@@ -29,12 +29,19 @@ public class EscalationService {
                 .findBySlaDeadlineBeforeAndStatusNotIn(LocalDateTime.now(), closedStatuses);
 
         for (Ticket ticket : breachedTickets) {
-            if (!ticket.isEscalated()) {
+            boolean changed = false;
+            if (!ticket.isSlaBreached()) {
                 ticket.setSlaBreached(true);
+                changed = true;
+            }
+            if (!ticket.isEscalated()) {
                 ticket.setEscalated(true);
-                ticketRepo.save(ticket);
+                changed = true;
                 log.info("Ticket {} breached SLA — escalated to dept head of {}",
                         ticket.getTicketNo(), ticket.getDepartment().getName());
+            }
+            if (changed) {
+                ticketRepo.save(ticket);
             }
         }
     }

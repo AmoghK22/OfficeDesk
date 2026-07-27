@@ -4,7 +4,7 @@ import api from '../api/api'
 import { useAuth } from '../context/AuthContext'
 import SlaCountdown from '../components/SlaCountdown'
 
-const STATUS_OPTIONS = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'REOPENED', 'RESOLVED', 'CLOSED']
+const STATUS_OPTIONS = ['RAISED', 'ASSIGNED', 'IN_PROGRESS', 'REOPENED', 'RESOLVED', 'CLOSED']
 const PRIORITY_OPTIONS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 
 export default function TicketList() {
