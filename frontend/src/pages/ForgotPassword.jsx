@@ -16,10 +16,9 @@ export default function ForgotPassword() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await api.post('/auth/forgot-password', { email })
-      setResetToken(res.data.resetToken)
+      await api.post('/auth/forgot-password', { email })
+      toast.success('Reset token sent to your email')
       setStep(2)
-      toast.success('Reset token generated')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to generate reset token')
     } finally {
@@ -77,7 +76,7 @@ export default function ForgotPassword() {
         <p className="text-sm text-gray-500 mb-6">
           {step === 1
             ? 'Enter your email to receive a reset token'
-            : 'Enter the reset token and your new password'}
+            : 'Check your email, then paste the token below'}
         </p>
 
         {step === 1 ? (
@@ -90,21 +89,19 @@ export default function ForgotPassword() {
             </div>
             <button type="submit" disabled={loading}
               className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
-              {loading ? 'Generating...' : 'Generate Reset Token'}
+              {loading ? 'Sending...' : 'Send Reset Token'}
             </button>
           </form>
         ) : (
           <form onSubmit={resetPassword} className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <p className="text-xs text-amber-700 font-medium mb-1">Your Reset Token (demo only):</p>
-              <p className="text-xs font-mono text-amber-800 break-all bg-amber-100 rounded px-2 py-1">{resetToken}</p>
-              <p className="text-xs text-amber-600 mt-1">In production, this would be emailed to you.</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-700">A reset token has been sent to <span className="font-medium">{email}</span>. Check your inbox and paste the token below.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Reset Token</label>
               <input type="text" required value={resetToken} onChange={e => setResetToken(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Paste your reset token" />
+                placeholder="Paste your reset token from email" autoFocus />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>

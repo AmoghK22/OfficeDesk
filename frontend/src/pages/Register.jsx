@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../api/api';
 
 export default function Register() {
-  const { register } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState({ name: '', email: '', password: '', departmentId: '' });
@@ -22,9 +20,9 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      await register(form.name, form.email, form.password, Number(form.departmentId));
-      toast.success('Account created successfully!');
-      navigate('/');
+      const res = await api.post('/auth/register', { name: form.name, email: form.email, password: form.password, departmentId: Number(form.departmentId) });
+      toast.success('Account created! Please check your email for the verification code.');
+      navigate('/verify-email', { state: { email: form.email } });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || 'Registration failed';
       setError(msg);

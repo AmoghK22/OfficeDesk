@@ -10,17 +10,23 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isNotVerified, setIsNotVerified] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsNotVerified(false);
     setLoading(true);
     try {
       await login(form.email, form.password);
       toast.success('Welcome back!');
       navigate('/');
     } catch (err) {
+      const status = err.response?.status;
       const msg = err.response?.data?.message || 'Invalid email or password';
+      if (status === 403 && err.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
+        setIsNotVerified(true);
+      }
       setError(msg);
       toast.error(msg);
     } finally {
@@ -42,6 +48,14 @@ export default function Login() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
               {error}
+              {isNotVerified && (
+                <div className="mt-2">
+                  <Link to="/verify-email" state={{ email: form.email }}
+                    className="text-indigo-600 hover:text-indigo-800 font-medium">
+                    Resend verification code
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

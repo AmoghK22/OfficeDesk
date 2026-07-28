@@ -40,6 +40,13 @@ public class User {
     @Column(columnDefinition = "boolean default true")
     private boolean isActive = true;
 
+    @Column(columnDefinition = "boolean default false")
+    private boolean isVerified = false;
+
+    private String verificationCode;
+
+    private LocalDateTime verificationCodeExpiry;
+
     private String resetToken;
 
     private LocalDateTime resetTokenExpiry;

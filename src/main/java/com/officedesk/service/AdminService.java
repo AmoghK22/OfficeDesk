@@ -50,7 +50,8 @@ public class AdminService {
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .role(req.getRole())
-                .isActive(true);
+                .isActive(true)
+                .isVerified(true);
 
         if (req.getDepartmentId() != null) {
             Department dept = deptRepo.findById(req.getDepartmentId())

@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import Dashboard from './pages/Dashboard'
 import TicketList from './pages/TicketList'
 import CreateTicket from './pages/CreateTicket'
@@ -33,6 +34,7 @@ function App() {
           <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
           <Route path="/register" element={token ? <Navigate to="/" /> : <Register />} />
           <Route path="/forgot-password" element={token ? <Navigate to="/" /> : <ForgotPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/tickets" element={<ProtectedRoute><TicketList /></ProtectedRoute>} />
           <Route path="/tickets/new" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />

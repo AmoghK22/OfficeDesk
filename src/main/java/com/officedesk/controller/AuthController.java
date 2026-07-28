@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,7 +25,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req) {
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(req));
     }
 
@@ -33,24 +34,31 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(req));
     }
 
+    @PostMapping("/verify-email")
+    public ResponseEntity<Map<String, String>> verifyEmail(@Valid @RequestBody VerifyEmailRequest req) {
+        String message = authService.verifyEmail(req);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Map<String, Object>> resendVerificationCode(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        return ResponseEntity.ok(authService.resendVerificationCode(email));
+    }
+
     @GetMapping("/departments")
     public ResponseEntity<List<DepartmentResponse>> getDepartments() {
         return ResponseEntity.ok(adminService.getAllDepartments());
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
-        String resetToken = authService.forgotPassword(req);
-        return ResponseEntity.ok(java.util.Map.of(
-                "message", "Password reset token generated successfully",
-                "resetToken", resetToken,
-                "note", "In production, this token would be emailed to the user"
-        ));
+    public ResponseEntity<Map<String, Object>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+        return ResponseEntity.ok(authService.forgotPassword(req));
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
         authService.resetPassword(req);
-        return ResponseEntity.ok(java.util.Map.of("message", "Password has been reset successfully"));
+        return ResponseEntity.ok(Map.of("message", "Password has been reset successfully"));
     }
 }

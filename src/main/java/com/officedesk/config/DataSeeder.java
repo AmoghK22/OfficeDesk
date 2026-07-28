@@ -40,6 +40,15 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        // Fix: mark all existing users as verified (for DBs seeded before isVerified field was added)
+        userRepo.findAll().forEach(u -> {
+            if (!u.isVerified()) {
+                u.setVerified(true);
+                u.setVerificationCode(null);
+                u.setVerificationCodeExpiry(null);
+            }
+        });
+
         if (deptRepo.count() > 0) return;
 
         // Departments
@@ -52,24 +61,24 @@ public class DataSeeder implements CommandLineRunner {
         User admin = userRepo.save(User.builder()
                 .name("Admin").email("admin@officedesk.com")
                 .password(passwordEncoder.encode("admin123"))
-                .role(Role.SUPER_ADMIN).isActive(true).build());
+                .role(Role.SUPER_ADMIN).isActive(true).isVerified(true).build());
 
         User head1 = userRepo.save(User.builder()
                 .name("Deepak Mehta").email("deepak@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.DEPT_HEAD).department(it).isActive(true).build());
+                .role(Role.DEPT_HEAD).department(it).isActive(true).isVerified(true).build());
         User head2 = userRepo.save(User.builder()
                 .name("Kavita Joshi").email("kavita@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.DEPT_HEAD).department(hr).isActive(true).build());
+                .role(Role.DEPT_HEAD).department(hr).isActive(true).isVerified(true).build());
         User head3 = userRepo.save(User.builder()
                 .name("Rajesh Iyer").email("rajesh@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.DEPT_HEAD).department(finance).isActive(true).build());
+                .role(Role.DEPT_HEAD).department(finance).isActive(true).isVerified(true).build());
         User head4 = userRepo.save(User.builder()
                 .name("Sunita Rao").email("sunita@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.DEPT_HEAD).department(facilities).isActive(true).build());
+                .role(Role.DEPT_HEAD).department(facilities).isActive(true).isVerified(true).build());
 
         // Set dept heads
         it.setHead(head1); deptRepo.save(it);
@@ -80,28 +89,28 @@ public class DataSeeder implements CommandLineRunner {
         User agent1 = userRepo.save(User.builder()
                 .name("Vikram Singh").email("vikram@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.AGENT).department(it).isActive(true).build());
+                .role(Role.AGENT).department(it).isActive(true).isVerified(true).build());
         User agent2 = userRepo.save(User.builder()
                 .name("Neha Gupta").email("neha@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.AGENT).department(hr).isActive(true).build());
+                .role(Role.AGENT).department(hr).isActive(true).isVerified(true).build());
         User agent3 = userRepo.save(User.builder()
                 .name("Amit Kumar").email("amit@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.AGENT).department(finance).isActive(true).build());
+                .role(Role.AGENT).department(finance).isActive(true).isVerified(true).build());
         User agent4 = userRepo.save(User.builder()
                 .name("Sanjay Verma").email("sanjay@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.AGENT).department(facilities).isActive(true).build());
+                .role(Role.AGENT).department(facilities).isActive(true).isVerified(true).build());
 
         User emp1 = userRepo.save(User.builder()
                 .name("Rahul Sharma").email("rahul@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.EMPLOYEE).department(it).isActive(true).build());
+                .role(Role.EMPLOYEE).department(it).isActive(true).isVerified(true).build());
         User emp2 = userRepo.save(User.builder()
                 .name("Priya Patel").email("priya@officedesk.com")
                 .password(passwordEncoder.encode("pass123"))
-                .role(Role.EMPLOYEE).department(hr).isActive(true).build());
+                .role(Role.EMPLOYEE).department(hr).isActive(true).isVerified(true).build());
 
         // SLA configs
         slaConfigRepo.save(SlaConfig.builder().department(it).priority(Priority.LOW).resolutionHours(72).build());
