@@ -22,6 +22,7 @@ export default function Register() {
     try {
       const res = await api.post('/auth/register', { name: form.name, email: form.email, password: form.password, departmentId: Number(form.departmentId) });
       toast.success('Account created! Please check your email for the verification code.');
+      sessionStorage.setItem('verifyEmail', form.email);
       navigate('/verify-email', { state: { email: form.email } });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || 'Registration failed';

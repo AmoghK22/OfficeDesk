@@ -8,11 +8,13 @@ import com.officedesk.enums.TicketStatus;
 import com.officedesk.exception.*;
 import com.officedesk.repository.*;
 import com.officedesk.util.CategoryDeptMapping;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
@@ -85,20 +87,10 @@ public class TicketService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (user.getRole() == Role.SUPER_ADMIN) {
-            return mapToResponse(ticket);
+        if (!canAccessTicket(ticket, user)) {
+            throw new UnauthorizedException("You do not have access to this ticket");
         }
-        if (user.getRole() == Role.DEPT_HEAD &&
-            ticket.getDepartment().getId().equals(user.getDepartment() != null ? user.getDepartment().getId() : null)) {
-            return mapToResponse(ticket);
-        }
-        if (ticket.getRaisedBy().getId().equals(userId)) {
-            return mapToResponse(ticket);
-        }
-        if (ticket.getAssignedTo() != null && ticket.getAssignedTo().getId().equals(userId)) {
-            return mapToResponse(ticket);
-        }
-        throw new UnauthorizedException("You do not have access to this ticket");
+        return mapToResponse(ticket);
     }
 
     @Transactional
@@ -171,13 +163,14 @@ public class TicketService {
             }
         }
 
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            throw new InvalidStatusTransitionException("Cannot reassign a CLOSED ticket. Reopen it first.");
+        }
+
         String oldAgent = ticket.getAssignedTo() != null ? ticket.getAssignedTo().getName() : "Unassigned";
         ticket.setAssignedTo(agent);
 
-        if (ticket.getStatus() == TicketStatus.CLOSED) {
-            ticket.setStatus(TicketStatus.ASSIGNED);
-            ticket.setClosedAt(null);
-        } else if (ticket.getStatus() != TicketStatus.IN_PROGRESS) {
+        if (ticket.getStatus() != TicketStatus.IN_PROGRESS) {
             ticket.setStatus(TicketStatus.ASSIGNED);
         }
 
@@ -193,6 +186,10 @@ public class TicketService {
 
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!canAccessTicket(ticket, user)) {
+            throw new UnauthorizedException("You do not have access to this ticket");
+        }
 
         boolean internal = req.isInternal() && (user.getRole() == Role.AGENT || user.getRole() == Role.DEPT_HEAD || user.getRole() == Role.SUPER_ADMIN);
 
@@ -389,6 +386,15 @@ public class TicketService {
         return false;
     }
 
+    private boolean canAccessTicket(Ticket ticket, User user) {
+        if (user.getRole() == Role.SUPER_ADMIN) return true;
+        if (user.getRole() == Role.DEPT_HEAD &&
+            ticket.getDepartment().getId().equals(user.getDepartment() != null ? user.getDepartment().getId() : null)) return true;
+        if (ticket.getRaisedBy().getId().equals(user.getId())) return true;
+        if (ticket.getAssignedTo() != null && ticket.getAssignedTo().getId().equals(user.getId())) return true;
+        return false;
+    }
+
     private User findLeastLoadedAgent(Department dept) {
         List<User> agents = userRepo.findByDepartmentIdAndRoleAndIsActive(dept.getId(), Role.AGENT, true);
         if (agents.isEmpty()) {
@@ -412,7 +418,13 @@ public class TicketService {
         long count = ticketRepo.countByYear(year) + 1;
         String ticketNo = String.format("TKT-%d-%04d", year, count);
         int safety = 0;
-        while (ticketRepo.existsByTicketNo(ticketNo) && safety < 100) {
+        while (safety < 100) {
+            try {
+                if (!ticketRepo.existsByTicketNo(ticketNo)) {
+                    return ticketNo;
+                }
+            } catch (DataIntegrityViolationException ignored) {
+            }
             count++;
             ticketNo = String.format("TKT-%d-%04d", year, count);
             safety++;
@@ -436,6 +448,11 @@ public class TicketService {
     }
 
     private TicketResponse mapToResponse(Ticket t) {
+        long slaHours = 24;
+        if (t.getSlaDeadline() != null && t.getCreatedAt() != null) {
+            long h = Duration.between(t.getCreatedAt(), t.getSlaDeadline()).toHours();
+            if (h > 0) slaHours = h;
+        }
         return TicketResponse.builder()
                 .id(t.getId())
                 .ticketNo(t.getTicketNo())
@@ -456,6 +473,7 @@ public class TicketService {
                 .resolutionNote(t.getResolutionNote())
                 .createdAt(t.getCreatedAt())
                 .closedAt(t.getClosedAt())
+                .slaHours(slaHours)
                 .build();
     }
 

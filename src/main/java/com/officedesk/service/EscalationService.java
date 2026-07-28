@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,7 @@ public class EscalationService {
     }
 
     @Scheduled(fixedRate = 900000)
+    @Transactional
     public void checkAndEscalateBreachedTickets() {
         List<TicketStatus> closedStatuses = List.of(TicketStatus.RESOLVED, TicketStatus.CLOSED);
         List<Ticket> breachedTickets = ticketRepo

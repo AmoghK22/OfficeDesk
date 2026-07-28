@@ -18,6 +18,7 @@ export default function TicketList() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const debounceRef = useRef(null)
+  const fetchIdRef = useRef(0)
 
   const viewLabel = user?.role === 'AGENT' ? 'My Assigned Tickets'
     : user?.role === 'DEPT_HEAD' ? 'Department Tickets'
@@ -39,6 +40,7 @@ export default function TicketList() {
 
   useEffect(() => {
     const fetchTickets = async () => {
+      const fetchId = ++fetchIdRef.current
       setLoading(true)
       try {
         const params = { page, size: 10 }
@@ -56,12 +58,14 @@ export default function TicketList() {
         } else {
           res = await api.get('/tickets/all', { params })
         }
+        if (fetchId !== fetchIdRef.current) return
         setTickets(res.data.content || [])
         setTotalPages(res.data.totalPages || 0)
       } catch (err) {
+        if (fetchId !== fetchIdRef.current) return
         console.error('Failed to load tickets', err)
       } finally {
-        setLoading(false)
+        if (fetchId === fetchIdRef.current) setLoading(false)
       }
     }
     fetchTickets()
@@ -167,7 +171,7 @@ export default function TicketList() {
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{t.assignedToName || 'Unassigned'}</td>
                   <td className="px-4 py-3">
-                    <SlaCountdown slaDeadline={t.slaDeadline} status={t.status} />
+                    <SlaCountdown slaDeadline={t.slaDeadline} slaHours={t.slaHours} status={t.status} />
                   </td>
                   <td className="px-4 py-3">
                     <Link to={`/tickets/${t.id}`} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">View</Link>
@@ -212,7 +216,7 @@ export default function TicketList() {
               </div>
               <div className="flex items-center gap-2">
                 {t.slaBreached && <span className="text-red-600 font-medium">SLA</span>}
-                <SlaCountdown slaDeadline={t.slaDeadline} status={t.status} />
+                <SlaCountdown slaDeadline={t.slaDeadline} slaHours={t.slaHours} status={t.status} />
               </div>
             </div>
           </Link>

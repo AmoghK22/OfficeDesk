@@ -15,6 +15,8 @@ export default function AdminPanel() {
   const [slaConfigs, setSlaConfigs] = useState([])
   const [selectedDeptForSla, setSelectedDeptForSla] = useState('')
   const [slaForm, setSlaForm] = useState({ priority: 'LOW', resolutionHours: 48 })
+  const [creatingUser, setCreatingUser] = useState(false)
+  const [updatingSla, setUpdatingSla] = useState(false)
 
   const loadUsers = async (page = 0) => {
     setLoading(true)
@@ -45,12 +47,15 @@ export default function AdminPanel() {
   const updateSlaConfig = async (e) => {
     e.preventDefault()
     if (!selectedDeptForSla) return
+    setUpdatingSla(true)
     try {
       await api.put(`/admin/sla/${selectedDeptForSla}`, slaForm)
       toast.success('SLA config updated')
       loadSlaConfigs(selectedDeptForSla)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update SLA config')
+    } finally {
+      setUpdatingSla(false)
     }
   }
 
@@ -59,6 +64,7 @@ export default function AdminPanel() {
 
   const createUser = async (e) => {
     e.preventDefault()
+    setCreatingUser(true)
     try {
       await api.post('/admin/users', { ...newUser, departmentId: newUser.departmentId ? Number(newUser.departmentId) : null })
       setNewUser({ name: '', email: '', password: '', role: 'AGENT', departmentId: '' })
@@ -67,6 +73,8 @@ export default function AdminPanel() {
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to create user'
       toast.error(msg)
+    } finally {
+      setCreatingUser(false)
     }
   }
 
@@ -135,8 +143,9 @@ export default function AdminPanel() {
                 </select>
               </div>
             </div>
-            <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">
-              Create User
+            <button type="submit" disabled={creatingUser}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
+              {creatingUser ? 'Creating...' : 'Create User'}
             </button>
           </form>
         </div>
@@ -268,8 +277,9 @@ export default function AdminPanel() {
                       onChange={e => setSlaForm({...slaForm, resolutionHours: parseInt(e.target.value) || 1})}
                       className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                   </div>
-                  <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">
-                    Update
+                  <button type="submit" disabled={updatingSla}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
+                    {updatingSla ? 'Updating...' : 'Update'}
                   </button>
                 </form>
               </>

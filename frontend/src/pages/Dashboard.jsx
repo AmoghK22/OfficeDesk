@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -28,6 +29,7 @@ export default function Dashboard() {
         setTickets((ticketsRes.data.content || []).slice(0, 5))
       } catch (err) {
         console.error('Failed to load dashboard', err)
+        setError('Failed to load dashboard data. Please try again later.')
       } finally {
         setLoading(false)
       }
@@ -53,6 +55,12 @@ export default function Dashboard() {
           + New Ticket
         </Link>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {statCards.map(card => (
@@ -97,7 +105,7 @@ export default function Dashboard() {
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   {t.slaBreached && <span className="text-[10px] sm:text-xs text-red-600 font-medium">SLA BREACHED</span>}
                   {t.escalated && <span className="text-[10px] sm:text-xs text-orange-600 font-medium">ESCALATED</span>}
-                  <SlaCountdown slaDeadline={t.slaDeadline} status={t.status} />
+                  <SlaCountdown slaDeadline={t.slaDeadline} slaHours={t.slaHours} status={t.status} />
                 </div>
               </div>
             </Link>

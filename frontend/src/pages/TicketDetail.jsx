@@ -187,7 +187,7 @@ export default function TicketDetail() {
               {ticket.slaDeadline ? new Date(ticket.slaDeadline).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-'}
             </p>
             {ticket.slaDeadline && (
-              <p className="mt-0.5"><SlaCountdown slaDeadline={ticket.slaDeadline} status={ticket.status} /></p>
+              <p className="mt-0.5"><SlaCountdown slaDeadline={ticket.slaDeadline} slaHours={ticket.slaHours} status={ticket.status} /></p>
             )}
           </div>
           {ticket.closedAt && <div><span className="text-gray-400 text-xs">Closed At</span><p className="font-medium text-gray-900">{new Date(ticket.closedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p></div>}

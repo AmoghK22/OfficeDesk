@@ -29,4 +29,5 @@ public class TicketResponse {
     private String resolutionNote;
     private LocalDateTime createdAt;
     private LocalDateTime closedAt;
+    private Long slaHours;
 }

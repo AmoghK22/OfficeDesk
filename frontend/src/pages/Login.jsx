@@ -98,16 +98,6 @@ export default function Login() {
             <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-medium">Register</Link>
           </p>
         </div>
-
-        <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <p className="text-xs font-medium text-gray-500 mb-2">Demo Accounts (password: pass123)</p>
-          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-            <div>rahul@officedesk.com <span className="text-gray-400">(Employee)</span></div>
-            <div>vikram@officedesk.com <span className="text-gray-400">(Agent-IT)</span></div>
-            <div>deepak@officedesk.com <span className="text-gray-400">(Head-IT)</span></div>
-            <div>admin@officedesk.com <span className="text-gray-400">(Admin)</span></div>
-          </div>
-        </div>
       </div>
     </div>
   );
